@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { screen, fireEvent } from '@testing-library/react'
+import '@testing-library/jest-dom/vitest'
 import { renderWithProviders } from '../test-utils'
 import LoginForm from '../../components/LoginForm'
 
