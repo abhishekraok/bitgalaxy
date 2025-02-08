@@ -19,8 +19,13 @@ class Settings(BaseSettings):
     # JWT token configuration
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
     
-    @property  # Changed from cached_property to property
+    # Testing flag
+    TESTING: bool = False
+
+    @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:
+        if self.TESTING:
+            return "sqlite:///:memory:"
         return (
             f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
             f"@{self.POSTGRES_SERVER}/{self.POSTGRES_DB}"
