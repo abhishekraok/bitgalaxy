@@ -3,16 +3,19 @@ from typing import Generator, Dict
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 from app.db.base_class import Base
 from app.db.session import SessionLocal
 from app.main import app
 from app.core.config import settings
 
 # Use an in-memory SQLite database for testing
-SQLALCHEMY_TEST_DATABASE_URL = "sqlite:///./test.db"
+SQLALCHEMY_TEST_DATABASE_URL = "sqlite:///:memory:"
 
 engine = create_engine(
-    SQLALCHEMY_TEST_DATABASE_URL, connect_args={"check_same_thread": False}
+    SQLALCHEMY_TEST_DATABASE_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool  # Add this to handle concurrent access
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
