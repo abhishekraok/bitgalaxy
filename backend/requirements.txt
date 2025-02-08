@@ -13,3 +13,4 @@ psycopg2-binary==2.9.10
 pydantic-settings==2.1.0
 aiosqlite==0.19.0
 email_validator==2.2.0
+bcrypt==4.2.1
