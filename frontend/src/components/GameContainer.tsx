@@ -44,16 +44,15 @@ const GameContainer = () => {
                     // Create new game instance using the container ref
                     gameRef.current = new Phaser.Game({
                         ...gameConfig,
-                        parent: containerRef.current as HTMLElement,
+                        // Only override scale and parent settings, preserve other game-specific configs
                         scale: {
                             mode: Phaser.Scale.FIT,
                             autoCenter: Phaser.Scale.CENTER_BOTH,
-                            width: 800,
-                            height: 600,
+                            width: gameConfig.width || 800,
+                            height: gameConfig.height || 600,
                             parent: containerRef.current as HTMLElement,
                         },
-                        type: Phaser.AUTO,
-                        backgroundColor: '#000000',
+                        parent: containerRef.current as HTMLElement,
                     })
                 } catch (err) {
                     console.error('Failed to load game:', err)
