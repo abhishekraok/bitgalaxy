@@ -16,22 +16,25 @@ def generate_game_configuration(
     
     The file should:
     1. Include the complete game configuration and scene class
-    2. Export both the config and scene
-    3. Use Phaser 3 framework with TypeScript
-    4. Include proper physics, collisions, and scoring
-    5. Use publicly available assets (provide URLs in the code)
+    2. Use Phaser 3 framework with TypeScript
+    3. Include proper physics, collisions, and scoring
+    4. Use publicly available assets (provide URLs in the code)
     
-    The file structure should follow this pattern:
+    The file must follow this exact structure with these exact names:
     ```typescript
     import 'phaser';
     
-    export class GameScene extends Phaser.Scene {{
+    class MainScene extends Phaser.Scene {{
         // Scene implementation
     }}
     
-    export const config: Phaser.Types.Core.GameConfig = {{
-        // Game configuration
+    const config: Phaser.Types.Core.GameConfig = {{
+        type: Phaser.AUTO,
+        scene: MainScene,
+        // Rest of configuration
     }};
+    
+    export {{ MainScene as default, config }};
     ```
     
     Return only the complete TypeScript code without any additional text or comments.
