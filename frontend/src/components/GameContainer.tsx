@@ -30,7 +30,7 @@ const GameContainer = () => {
                 return
             }
 
-            if (gameType === 'static') {
+            if (gameType === 'static' || gameType === 'generated') {
                 const gameInfo = staticGames.find(g => g.id === gameId)
                 if (!gameInfo) {
                     if (isMounted) {

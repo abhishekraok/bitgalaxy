@@ -4,32 +4,40 @@ from typing import Dict, Any
 
 anthropic = Anthropic(api_key=settings.ANTHROPIC_API_KEY)
 
+
 async def generate_game_configuration(
-    game_type: str,
-    description: str | None
+    game_type: str, description: str | None
 ) -> Dict[str, Any]:
     """Generate game configuration using Claude"""
-    prompt = f"""Create a simple Phaser game configuration.
-    Game type: {game_type}
+    prompt = f"""Create a Phaser 3 game implementation.
     Description: {description or 'A simple game'}
     
-    Return only valid JSON that includes:
-    - Game title
-    - Basic game mechanics
-    - Initial game state
-    - Scoring rules
-    - Win/lose conditions
-    """
+    Return a JSON object with the following structure:
+    {{
+        "gameFiles": {{
+            "config.ts": "// Configuration file content",
+            "Scene.ts": "// Main scene file content"
+        }},
+        "metadata": {{
+            "id": "game-id-in-kebab-case",
+            "title": "Game Title",
+            "description": "Game description"
+        }}
+    }}
     
+    The game should:
+    1. Use Phaser 3 framework
+    2. Include complete, working TypeScript code
+    3. Follow similar patterns to existing games
+    4. Include proper physics, collisions, and scoring
+    5. Use publicly available assets (provide URLs in the code)
+    """
+
     response = await anthropic.messages.create(
         model="claude-3-5-sonnet-latest",
-        max_tokens=1000,
-        messages=[{
-            "role": "user",
-            "content": prompt
-        }]
+        max_tokens=4 * 1024,
+        messages=[{"role": "user", "content": prompt}],
     )
-    
+
     # Parse and validate the response
-    game_config = response.content[0].text
-    return game_config 
+    return response.content[0].text
