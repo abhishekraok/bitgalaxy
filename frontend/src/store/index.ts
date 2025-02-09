@@ -1,9 +1,9 @@
 import { configureStore } from '@reduxjs/toolkit'
+import gamesReducer from './slices/gamesSlice'
 
 // You can add your reducers here
 const rootReducer = {
-    // auth: authReducer,
-    // other reducers...
+    games: gamesReducer
 }
 
 export const setupStore = (preloadedState?: Partial<RootState>) => {
