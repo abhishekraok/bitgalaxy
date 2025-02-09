@@ -8,21 +8,42 @@ const GameContainer = () => {
     const { gameType, gameId } = useParams()
     const navigate = useNavigate()
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
         async function initGame() {
             if (gameType === 'static') {
                 const gameInfo = staticGames.find(g => g.id === gameId)
                 if (!gameInfo) {
+                    setError('Game not found')
                     navigate('/')
                     return
                 }
 
                 try {
-                    const { default: config } = await gameInfo.getConfig()
-                    gameRef.current = new Phaser.Game(config)
+                    // Clean up any existing game instance
+                    if (gameRef.current) {
+                        gameRef.current.destroy(true)
+                    }
+
+                    // Clear any existing game container
+                    const container = document.getElementById('game-container')
+                    if (container) {
+                        container.innerHTML = ''
+                    }
+
+                    const config = await gameInfo.getConfig()
+                    // Make sure we're using the default export
+                    const gameConfig = config.default || config
+
+                    // Create new game instance
+                    gameRef.current = new Phaser.Game({
+                        ...gameConfig,
+                        parent: 'game-container'
+                    })
                 } catch (error) {
                     console.error('Failed to load game:', error)
+                    setError('Failed to load game')
                     navigate('/')
                 }
             }
@@ -32,7 +53,9 @@ const GameContainer = () => {
         initGame()
 
         return () => {
-            gameRef.current?.destroy(true)
+            if (gameRef.current) {
+                gameRef.current.destroy(true)
+            }
         }
     }, [gameType, gameId, navigate])
 
@@ -40,7 +63,11 @@ const GameContainer = () => {
         return <div>Loading game...</div>
     }
 
-    return <div id="game-container" />
+    if (error) {
+        return <div>Error: {error}</div>
+    }
+
+    return <div id="game-container" style={{ width: '800px', height: '600px', margin: '0 auto' }} />
 }
 
 export default GameContainer 

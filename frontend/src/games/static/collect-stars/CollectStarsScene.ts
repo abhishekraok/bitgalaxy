@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 
-export class MainScene extends Phaser.Scene {
+export default class CollectStarsScene extends Phaser.Scene {
     private platforms?: Phaser.Physics.Arcade.StaticGroup
     private player?: Phaser.Physics.Arcade.Sprite
     private stars?: Phaser.Physics.Arcade.Group
@@ -8,7 +8,7 @@ export class MainScene extends Phaser.Scene {
     private scoreText?: Phaser.GameObjects.Text
 
     constructor() {
-        super({ key: 'MainScene' })
+        super({ key: 'CollectStarsScene' })
     }
 
     preload() {
