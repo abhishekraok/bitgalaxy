@@ -188,8 +188,28 @@ const GameContainer = () => {
     // Render the container first, before any game initialization
     return (
         <div className="game-wrapper">
-            {loading && <div>Loading game...</div>}
-            {error && <div>Error: {error}</div>}
+            {loading && (
+                <div style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    zIndex: 2
+                }}>
+                    Loading game...
+                </div>
+            )}
+            {error && (
+                <div style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    zIndex: 2
+                }}>
+                    Error: {error}
+                </div>
+            )}
             <div
                 id="game-container"
                 ref={containerRef}
@@ -199,7 +219,8 @@ const GameContainer = () => {
                     height: '600px',
                     position: 'relative',
                     border: '2px solid red',
-                    display: loading || error ? 'none' : 'block' // Hide container while loading or on error
+                    opacity: loading || error ? 0 : 1,
+                    visibility: loading || error ? 'hidden' : 'visible'
                 }}
             />
         </div>
