@@ -8,7 +8,7 @@ export default class SnakeScene extends Scene {
     private snake: SnakeSegment[] = [];
     private food!: Phaser.GameObjects.Rectangle;
     private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
-    private direction: { x: number; y: number } = { x: 0, y: 0 };
+    private direction: { x: number; y: number } = { x: 1, y: 0 };
     private moveTimer = 0;
     private readonly moveInterval = 100; // Snake speed (lower = faster)
     private readonly gridSize = 20;
@@ -21,10 +21,17 @@ export default class SnakeScene extends Scene {
     }
 
     create() {
+        // Reset all game state
+        this.snake = [];
+        this.gameOver = false;
+        this.score = 0;
+        this.moveTimer = 0;
+        this.direction = { x: 1, y: 0 }; // Reset direction to move right
+
         this.cursors = this.input.keyboard!.createCursorKeys();
 
         // Create initial snake
-        const startX = 400;
+        const startX = 200;
         const startY = 300;
         for (let i = 0; i < 3; i++) {
             const segment = this.add.rectangle(
