@@ -31,15 +31,6 @@ const GameContainer = () => {
             }
 
             if (gameType === 'static' || gameType === 'generated') {
-                const gameInfo = staticGames.find(g => g.id === gameId)
-                if (!gameInfo) {
-                    if (isMounted) {
-                        setError('Game not found')
-                        setLoading(false)
-                    }
-                    return
-                }
-
                 try {
                     if (gameRef.current) {
                         gameRef.current.destroy(true)
@@ -48,23 +39,20 @@ const GameContainer = () => {
 
                     containerRef.current.innerHTML = ''
 
-                    const configImport = await gameInfo.getConfig()
-                    const gameConfig = configImport.default || configImport
+                    const gameModule = await import(`../games/static/${gameId}/Scene`)
 
                     if (!isMounted || !containerRef.current) return
 
                     gameRef.current = new Phaser.Game({
-                        ...gameConfig,
+                        ...gameModule.config,
                         scale: {
                             mode: Phaser.Scale.FIT,
                             autoCenter: Phaser.Scale.CENTER_BOTH,
-                            width: gameConfig.width || 800,
-                            height: gameConfig.height || 600,
+                            width: gameModule.config.width || 800,
+                            height: gameModule.config.height || 600,
                             parent: containerRef.current
                         },
-                        parent: containerRef.current,
-                        transparent: false,
-                        backgroundColor: '#4488aa'
+                        parent: containerRef.current
                     })
 
                     if (isMounted) {

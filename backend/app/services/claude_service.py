@@ -10,19 +10,31 @@ def generate_game_configuration(
     description: str, game_id: str, game_title: str
 ) -> Dict[str, Any]:
     """Generate game configuration using Claude"""
-    prompt = f"""Create a Phaser 3 game implementation.
+    prompt = f"""Create a complete Phaser 3 game implementation in a single TypeScript file.
     Title: {game_title}
     Description: {description or 'A simple game'}
     
-    All your code should be in a single file. Return the complete working code in typescript.
-    Do not include any other text or comments.
-    
-    The game should:
-    1. Use Phaser 3 framework
-    2. Include complete, working TypeScript code
-    3. Follow similar patterns to existing games
+    The file should:
+    1. Include the complete game configuration and scene class
+    2. Export both the config and scene
+    3. Use Phaser 3 framework with TypeScript
     4. Include proper physics, collisions, and scoring
     5. Use publicly available assets (provide URLs in the code)
+    
+    The file structure should follow this pattern:
+    ```typescript
+    import 'phaser';
+    
+    export class GameScene extends Phaser.Scene {{
+        // Scene implementation
+    }}
+    
+    export const config: Phaser.Types.Core.GameConfig = {{
+        // Game configuration
+    }};
+    ```
+    
+    Return only the complete TypeScript code without any additional text or comments.
     """
 
     response = claude_client.messages.create(

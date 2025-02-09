@@ -51,17 +51,9 @@ async def generate_game(game_create: GameCreate) -> GameResponse:
         # Create game directory
         os.makedirs(game_path, exist_ok=True)
 
-        # Save Scene.ts
+        # Save Scene.ts which now contains everything
         with open(game_path / "Scene.ts", "w") as f:
             f.write(config_data["gameFiles"]["Scene.ts"])
-
-        # Save standard config.ts
-        scene_name = game_id.title().replace("-", "")
-        with open(game_path / "config.ts", "w") as f:
-            f.write(get_standard_config(scene_name))
-
-        # Update registry.ts
-        await update_game_registry(config_data["metadata"])
 
         return GameResponse(
             id=game_id,
@@ -77,30 +69,3 @@ async def generate_game(game_create: GameCreate) -> GameResponse:
         raise ValueError(f"Failed to generate game: {str(e)}")
     except Exception as e:
         raise ValueError(f"Unexpected error while generating game: {str(e)}")
-
-
-async def update_game_registry(metadata: dict):
-    """Update the static games registry with the new game"""
-    registry_path = Path("../frontend/src/games/static/registry.ts")
-
-    # Read existing registry
-    with open(registry_path, "r") as f:
-        content = f.read()
-
-    # Find the position before the closing array bracket
-    insert_pos = content.rindex("];")
-
-    # Create new game entry
-    new_game = f"""    {{
-        id: '{metadata["id"]}',
-        title: '{metadata["title"]}',
-        description: '{metadata["description"]}',
-        getConfig: () => import('./{metadata["id"]}/config')
-    }},\n"""
-
-    # Insert the new game entry
-    updated_content = content[:insert_pos] + new_game + content[insert_pos:]
-
-    # Save updated registry
-    with open(registry_path, "w") as f:
-        f.write(updated_content)
