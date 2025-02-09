@@ -19,12 +19,12 @@ const GameContainer = () => {
                 const gameInfo = staticGames.find(g => g.id === gameId)
                 if (!gameInfo) {
                     setError('Game not found')
-                    navigate('/')
+                    setLoading(false)
                     return
                 }
 
                 try {
-                    // Clean up any existing game instance, and set to null
+                    // Destroy any existing game instance
                     if (gameRef.current) {
                         gameRef.current.destroy(true)
                         gameRef.current = null
@@ -35,8 +35,8 @@ const GameContainer = () => {
                         containerRef.current.innerHTML = ''
                     }
 
-                    const config = await gameInfo.getConfig()
-                    const gameConfig = config.default || config
+                    const configImport = await gameInfo.getConfig()
+                    const gameConfig = configImport.default || configImport
 
                     // Ensure the component is still mounted before continuing
                     if (!isMounted) return
@@ -50,20 +50,33 @@ const GameContainer = () => {
                             autoCenter: Phaser.Scale.CENTER_BOTH,
                             width: 800,
                             height: 600,
-                        }
+                            parent: containerRef.current as HTMLElement,
+                        },
+                        type: Phaser.AUTO,
+                        backgroundColor: '#000000',
                     })
-                } catch (error) {
-                    console.error('Failed to load game:', error)
+                } catch (err) {
+                    console.error('Failed to load game:', err)
                     setError('Failed to load game')
-                    navigate('/')
+                    setLoading(false)
+                    return
                 }
+            } else if (gameType === 'generated') {
+                // For now, generated games are not implemented in this container.
+                setError('Generated games are not supported yet.')
+                setLoading(false)
+                return
+            } else {
+                setError('Unsupported game type')
+                setLoading(false)
+                return
             }
             setLoading(false)
         }
 
         initGame()
 
-        // Cleanup both the game and the container on unmount and on dependency change
+        // Cleanup on unmount or dependency change
         return () => {
             isMounted = false
             if (gameRef.current) {
@@ -86,7 +99,7 @@ const GameContainer = () => {
 
     return (
         <div className="game-wrapper">
-            <div id="game-container" ref={containerRef} />
+            <div id="game-container" ref={containerRef} style={{ backgroundColor: '#000' }} />
         </div>
     )
 }
