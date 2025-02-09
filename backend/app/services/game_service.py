@@ -8,10 +8,8 @@ from pathlib import Path
 
 async def generate_game(game_create: GameCreate) -> GameResponse:
     """Generate a new game using Claude and save it to disk"""
-    # Generate game configuration using Claude
-    game_config = await generate_game_configuration(
-        game_type="generated", description=game_create.description
-    )
+    # Generate game configuration using Claude (now synchronous)
+    game_config = generate_game_configuration(description=game_create.description)
 
     # Parse the response
     config_data = json.loads(game_config)

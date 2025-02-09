@@ -2,12 +2,10 @@ from anthropic import Anthropic
 from app.core.config import settings
 from typing import Dict, Any
 
-anthropic = Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+claude_client = Anthropic(api_key=settings.ANTHROPIC_API_KEY)
 
 
-async def generate_game_configuration(
-    game_type: str, description: str | None
-) -> Dict[str, Any]:
+def generate_game_configuration(description: str | None) -> Dict[str, Any]:
     """Generate game configuration using Claude"""
     prompt = f"""Create a Phaser 3 game implementation.
     Description: {description or 'A simple game'}
@@ -33,7 +31,7 @@ async def generate_game_configuration(
     5. Use publicly available assets (provide URLs in the code)
     """
 
-    response = await anthropic.messages.create(
+    response = claude_client.messages.create(
         model="claude-3-5-sonnet-latest",
         max_tokens=4 * 1024,
         messages=[{"role": "user", "content": prompt}],
