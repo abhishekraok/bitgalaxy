@@ -47,11 +47,12 @@ def generate_game_configuration(
     )
 
     response_text = response.content[0].text
+    game_code = response_text.split("```typescript")[1].split("```")[0]
 
     try:
         config = {
             "gameFiles": {
-                "Scene.ts": response_text,
+                "Scene.ts": game_code,
             },
             "metadata": {
                 "id": game_id,
