@@ -33,13 +33,18 @@ const GameContainer = () => {
                     }
 
                     const config = await gameInfo.getConfig()
-                    // Make sure we're using the default export
                     const gameConfig = config.default || config
 
-                    // Create new game instance
+                    // Create new game instance with explicit container
                     gameRef.current = new Phaser.Game({
                         ...gameConfig,
-                        parent: 'game-container'
+                        parent: 'game-container',
+                        scale: {
+                            mode: Phaser.Scale.FIT,
+                            autoCenter: Phaser.Scale.CENTER_BOTH,
+                            width: 800,
+                            height: 600,
+                        }
                     })
                 } catch (error) {
                     console.error('Failed to load game:', error)
@@ -67,7 +72,11 @@ const GameContainer = () => {
         return <div>Error: {error}</div>
     }
 
-    return <div id="game-container" style={{ width: '800px', height: '600px', margin: '0 auto' }} />
+    return (
+        <div className="game-wrapper">
+            <div id="game-container" />
+        </div>
+    )
 }
 
 export default GameContainer 
