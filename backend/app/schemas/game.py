@@ -14,7 +14,7 @@ class GameCreate(GameBase):
 
 
 class GameResponse(GameBase):
-    id: int
+    id: str
     configuration: Dict[str, Any]
     state: Dict[str, Any]
     created_at: datetime
@@ -25,7 +25,7 @@ class GameResponse(GameBase):
 
 
 class GameList(GameBase):
-    id: int
+    id: str
     created_at: datetime
 
     class Config:
