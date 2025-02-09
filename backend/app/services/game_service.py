@@ -33,7 +33,6 @@ def scan_static_games(db: Session) -> list[Game]:
                 game = Game(
                     id=game_id,
                     title=f"Game {game_id}",  # Default title if not found
-                    creator_id=1,  # Default creator ID
                     configuration={"gameFiles": {"Scene.ts": scene_file.read_text()}},
                     state={},
                 )
@@ -75,7 +74,6 @@ async def generate_game(game_create: GameCreate, db: Session) -> GameResponse:
         game = Game(
             id=game_id,
             title=game_create.title,
-            creator_id=1,  # Default creator ID
             configuration=config_data,
             state={},
         )

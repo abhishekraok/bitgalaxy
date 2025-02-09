@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, JSON, ForeignKey, DateTime
+from sqlalchemy import Column, String, JSON, DateTime
 from sqlalchemy.sql import func
 from app.db.base_class import Base
 
@@ -7,7 +7,6 @@ class Game(Base):
     __tablename__ = "games"
 
     id = Column(String, primary_key=True, index=True)
-    creator_id = Column(String, ForeignKey("users.id"), nullable=False)
     title = Column(String, nullable=False)
     configuration = Column(JSON, nullable=False)
     state = Column(JSON, nullable=False)
