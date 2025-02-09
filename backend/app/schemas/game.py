@@ -1,0 +1,27 @@
+from pydantic import BaseModel
+from typing import Dict, Any
+from datetime import datetime
+
+class GameBase(BaseModel):
+    title: str
+
+class GameCreate(GameBase):
+    description: str | None = None
+    game_type: str = "simple"  # Can be extended for different game types
+
+class GameResponse(GameBase):
+    id: int
+    configuration: Dict[str, Any]
+    state: Dict[str, Any]
+    created_at: datetime
+    updated_at: datetime | None
+
+    class Config:
+        from_attributes = True
+
+class GameList(GameBase):
+    id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True 
