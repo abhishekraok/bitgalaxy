@@ -10,95 +10,198 @@ const GameContainer = () => {
     const navigate = useNavigate()
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const initAttemptRef = useRef(false)
 
+    // First, let's add a mount effect to verify the container
     useEffect(() => {
+        console.log('Container mount check:', {
+            containerRef: containerRef.current,
+            containerExists: !!containerRef.current,
+            dimensions: containerRef.current ? {
+                width: containerRef.current.offsetWidth,
+                height: containerRef.current.offsetHeight
+            } : null
+        })
+    }, []) // Empty dependency array to run only on mount
+
+    // Separate effect for game initialization
+    useEffect(() => {
+        console.log('Game initialization effect triggered with:', {
+            gameType,
+            gameId,
+            containerExists: !!containerRef.current
+        })
+
         let isMounted = true
 
         async function initGame() {
+            if (initAttemptRef.current) {
+                console.log('Initialization already attempted, waiting for cleanup...')
+                return
+            }
+            initAttemptRef.current = true
+
+            // Verify container immediately
+            if (!containerRef.current) {
+                console.error('Container ref not available immediately')
+                if (isMounted) {
+                    setError('Failed to initialize game container')
+                    setLoading(false)
+                }
+                return
+            }
+
+            console.log('Container verified:', {
+                width: containerRef.current.offsetWidth,
+                height: containerRef.current.offsetHeight,
+                children: containerRef.current.children.length
+            })
+
+            if (!document.createElement('canvas').getContext('webgl')) {
+                console.error('WebGL is not supported in this browser')
+                if (isMounted) {
+                    setError('Your browser does not support WebGL')
+                    setLoading(false)
+                }
+                return
+            }
+
             if (gameType === 'static') {
                 const gameInfo = staticGames.find(g => g.id === gameId)
                 if (!gameInfo) {
-                    setError('Game not found')
-                    setLoading(false)
+                    if (isMounted) {
+                        setError('Game not found')
+                        setLoading(false)
+                    }
                     return
                 }
 
                 try {
-                    // Destroy any existing game instance
+                    // Clear any existing game
                     if (gameRef.current) {
+                        console.log('Destroying existing game instance...')
                         gameRef.current.destroy(true)
                         gameRef.current = null
+                        await new Promise(resolve => setTimeout(resolve, 100))
                     }
 
-                    // Clear the container explicitly via the ref
-                    if (containerRef.current) {
-                        containerRef.current.innerHTML = ''
+                    // Clear container
+                    console.log('Preparing container...')
+                    containerRef.current.innerHTML = ''
+
+                    // Wait for DOM updates
+                    await new Promise(resolve => requestAnimationFrame(resolve))
+
+                    if (!isMounted || !containerRef.current) {
+                        console.log('Component unmounted during initialization')
+                        return
                     }
 
                     const configImport = await gameInfo.getConfig()
                     const gameConfig = configImport.default || configImport
 
-                    // Ensure the component is still mounted before continuing
-                    if (!isMounted) return
+                    console.log('Creating new game instance...', {
+                        containerEmpty: containerRef.current.children.length === 0,
+                        containerDimensions: {
+                            width: containerRef.current.offsetWidth,
+                            height: containerRef.current.offsetHeight
+                        }
+                    })
 
-                    // Create new game instance using the container ref
                     gameRef.current = new Phaser.Game({
                         ...gameConfig,
-                        // Only override scale and parent settings, preserve other game-specific configs
                         scale: {
                             mode: Phaser.Scale.FIT,
                             autoCenter: Phaser.Scale.CENTER_BOTH,
                             width: gameConfig.width || 800,
                             height: gameConfig.height || 600,
-                            parent: containerRef.current as HTMLElement,
+                            parent: containerRef.current
                         },
-                        parent: containerRef.current as HTMLElement,
+                        parent: containerRef.current,
+                        transparent: false,
+                        backgroundColor: '#4488aa'
                     })
+
+                    console.log('Game instance created successfully')
+
+                    if (isMounted) {
+                        setLoading(false)
+                    }
                 } catch (err) {
                     console.error('Failed to load game:', err)
-                    setError('Failed to load game')
-                    setLoading(false)
-                    return
+                    if (isMounted) {
+                        setError('Failed to load game')
+                        setLoading(false)
+                    }
                 }
             } else if (gameType === 'generated') {
-                // For now, generated games are not implemented in this container.
-                setError('Generated games are not supported yet.')
-                setLoading(false)
+                if (isMounted) {
+                    setError('Generated games are not supported yet.')
+                    setLoading(false)
+                }
                 return
             } else {
                 setError('Unsupported game type')
                 setLoading(false)
                 return
             }
-            setLoading(false)
         }
 
-        initGame()
+        initGame().catch(error => {
+            console.error('Unhandled error during game initialization:', error)
+            if (isMounted) {
+                setError('Unexpected error occurred')
+                setLoading(false)
+            }
+        })
 
-        // Cleanup on unmount or dependency change
         return () => {
+            console.log('Cleanup triggered', {
+                hasGame: !!gameRef.current,
+                hasContainer: !!containerRef.current
+            })
             isMounted = false
+
             if (gameRef.current) {
-                gameRef.current.destroy(true)
-                gameRef.current = null
+                console.log('Destroying game in cleanup')
+                try {
+                    gameRef.current.destroy(true, false)
+                    gameRef.current = null
+                } catch (error) {
+                    console.error('Error during game cleanup:', error)
+                }
             }
+
             if (containerRef.current) {
-                containerRef.current.innerHTML = ''
+                console.log('Clearing container in cleanup')
+                try {
+                    containerRef.current.innerHTML = ''
+                } catch (error) {
+                    console.error('Error during container cleanup:', error)
+                }
             }
+
+            initAttemptRef.current = false
         }
     }, [gameType, gameId, navigate])
 
-    if (loading) {
-        return <div>Loading game...</div>
-    }
-
-    if (error) {
-        return <div>Error: {error}</div>
-    }
-
+    // Render the container first, before any game initialization
     return (
         <div className="game-wrapper">
-            <div id="game-container" ref={containerRef} style={{ backgroundColor: '#000' }} />
+            {loading && <div>Loading game...</div>}
+            {error && <div>Error: {error}</div>}
+            <div
+                id="game-container"
+                ref={containerRef}
+                style={{
+                    backgroundColor: '#000',
+                    width: '800px',
+                    height: '600px',
+                    position: 'relative',
+                    border: '2px solid red',
+                    display: loading || error ? 'none' : 'block' // Hide container while loading or on error
+                }}
+            />
         </div>
     )
 }
