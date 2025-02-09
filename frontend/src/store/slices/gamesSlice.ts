@@ -18,8 +18,23 @@ const initialState: GamesState = {
 
 export const generateGame = createAsyncThunk(
     'games/generate',
-    async ({ title, description }: { title: string; description?: string }) => {
-        return await gamesApi.generateGame(title, description)
+    async (gameData: { title: string; description: string }) => {
+        const response = await fetch('/api/v1/games/generate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                title: gameData.title,
+                description: gameData.description,
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to generate game');
+        }
+
+        return await response.json();
     }
 )
 

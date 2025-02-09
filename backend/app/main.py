@@ -6,16 +6,26 @@ from app.api.v1.api import api_router
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json"
+    openapi_url=f"{settings.API_V1_STR}/openapi.json",
 )
 
 # Set up CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Update with your frontend URL
+    allow_origins=[
+        "http://localhost:3000",  # Frontend URL
+        "https://labs.phaser.io",  # Phaser Labs URL
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=[
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "OPTIONS",
+    ],  # Explicitly list allowed methods
     allow_headers=["*"],
+    expose_headers=["*"],  # Added to expose headers to the frontend
 )
 
-app.include_router(api_router, prefix=settings.API_V1_STR) 
+app.include_router(api_router, prefix=settings.API_V1_STR)

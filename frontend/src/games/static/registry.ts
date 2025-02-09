@@ -21,5 +21,4 @@ export const staticGames: StaticGameInfo[] = [
         description: 'Classic snake game - Use arrow keys to control the snake',
         getConfig: () => import('./snake/config')
     },
-    // Add more games here following the same pattern
 ]; 
