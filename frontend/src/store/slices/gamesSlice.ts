@@ -19,7 +19,7 @@ const initialState: GamesState = {
 export const generateGame = createAsyncThunk(
     'games/generate',
     async (gameData: { title: string; description: string }) => {
-        const response = await fetch('/api/games', {
+        const response = await fetch('/api/v1/games/generate', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

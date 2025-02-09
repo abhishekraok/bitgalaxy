@@ -4,7 +4,6 @@ from datetime import datetime
 import json
 import os
 from pathlib import Path
-from slugify import slugify
 
 
 def get_standard_config(scene_name: str) -> str:
@@ -35,17 +34,15 @@ export {{ config as default }}
 async def generate_game(game_create: GameCreate) -> GameResponse:
     """Generate a new game using Claude and save it to disk"""
     try:
+        # Generate unique game ID using title and timestamp
+        game_id = datetime.now().strftime("%Y%m%d-%H%M%S")
 
         # Generate game configuration using Claude
-        config_data = generate_game_configuration(description=game_create.description)
-
-        # Generate unique game ID using title and timestamp
-        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-        game_title = config_data["metadata"]["title"]
-        game_id = f"{slugify(game_title)}-{timestamp}"
-
-        # Update the ID in the metadata
-        config_data["metadata"]["id"] = game_id
+        config_data = generate_game_configuration(
+            description=game_create.description,
+            game_id=game_id,
+            game_title=game_create.title,
+        )
 
         # Define the base path for static games
         base_path = Path("../frontend/src/games/static")

@@ -11,6 +11,7 @@ def generate_game_configuration(
 ) -> Dict[str, Any]:
     """Generate game configuration using Claude"""
     prompt = f"""Create a Phaser 3 game implementation.
+    Title: {game_title}
     Description: {description or 'A simple game'}
     
     All your code should be in a single file. Return the complete working code in typescript.
