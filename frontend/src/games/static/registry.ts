@@ -15,5 +15,11 @@ export const staticGames: StaticGameInfo[] = [
         // Using dynamic import for lazy loading
         getConfig: () => import('./collect-stars/config')
     },
+    {
+        id: 'snake',
+        title: 'Snake',
+        description: 'Classic snake game - Use arrow keys to control the snake',
+        getConfig: () => import('./snake/config')
+    },
     // Add more games here following the same pattern
 ]; 
