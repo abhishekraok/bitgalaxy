@@ -9,7 +9,7 @@ from pathlib import Path
 def get_standard_config(scene_name: str) -> str:
     """Return the standard game configuration template"""
     return f"""import {{ GameConfig }} from 'phaser'
-import {scene_name} from './{scene_name}'
+import Scene{scene_name} from './Scene'
 
 const config: GameConfig = {{
     type: Phaser.AUTO,
@@ -17,7 +17,7 @@ const config: GameConfig = {{
     height: 600,
     backgroundColor: '#4488aa',
     parent: 'game-container',
-    scene: {scene_name},
+    scene: Scene{scene_name},
     physics: {{
         default: 'arcade',
         arcade: {{
@@ -56,7 +56,7 @@ async def generate_game(game_create: GameCreate) -> GameResponse:
             f.write(config_data["gameFiles"]["Scene.ts"])
 
         # Save standard config.ts
-        scene_name = f"{game_id.title().replace('-', '')}Scene"
+        scene_name = game_id.title().replace("-", "")
         with open(game_path / "config.ts", "w") as f:
             f.write(get_standard_config(scene_name))
 

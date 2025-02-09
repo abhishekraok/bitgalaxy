@@ -32,7 +32,6 @@ def generate_game_configuration(
     )
 
     response_text = response.content[0].text
-    print(response_text)
 
     try:
         config = {
