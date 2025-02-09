@@ -6,7 +6,9 @@ import json
 claude_client = Anthropic(api_key=settings.ANTHROPIC_API_KEY)
 
 
-def generate_game_configuration(description: str | None) -> Dict[str, Any]:
+def generate_game_configuration(
+    description: str, game_id: str, game_title: str
+) -> Dict[str, Any]:
     """Generate game configuration using Claude"""
     prompt = f"""Create a Phaser 3 game implementation.
     Description: {description or 'A simple game'}
@@ -37,9 +39,9 @@ def generate_game_configuration(description: str | None) -> Dict[str, Any]:
                 "Scene.ts": response_text,
             },
             "metadata": {
-                "id": "game-id-in-kebab-case",
-                "title": "Game Title",
-                "description": "Game description",
+                "id": game_id,
+                "title": game_title,
+                "description": description,
             },
         }
         return config

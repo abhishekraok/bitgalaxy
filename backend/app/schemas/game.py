@@ -2,12 +2,16 @@ from pydantic import BaseModel
 from typing import Dict, Any
 from datetime import datetime
 
+
 class GameBase(BaseModel):
     title: str
 
+
 class GameCreate(GameBase):
-    description: str | None = None
-    game_type: str = "simple"  # Can be extended for different game types
+    description: str
+    game_type: str = "simple"  # TODO: Remove this field
+    title: str
+
 
 class GameResponse(GameBase):
     id: int
@@ -19,9 +23,10 @@ class GameResponse(GameBase):
     class Config:
         from_attributes = True
 
+
 class GameList(GameBase):
     id: int
     created_at: datetime
 
     class Config:
-        from_attributes = True 
+        from_attributes = True
