@@ -1,34 +1,8 @@
 from app.schemas.game import GameCreate, GameResponse
 from app.services.claude_service import generate_game_configuration
 from datetime import datetime
-import json
 import os
 from pathlib import Path
-
-
-def get_standard_config(scene_name: str) -> str:
-    """Return the standard game configuration template"""
-    return f"""import {{ GameConfig }} from 'phaser'
-import Scene{scene_name} from './Scene'
-
-const config: GameConfig = {{
-    type: Phaser.AUTO,
-    width: 800,
-    height: 600,
-    backgroundColor: '#4488aa',
-    parent: 'game-container',
-    scene: Scene{scene_name},
-    physics: {{
-        default: 'arcade',
-        arcade: {{
-            gravity: {{ y: 300 }},
-            debug: false
-        }}
-    }}
-}}
-
-export {{ config as default }}
-"""
 
 
 async def generate_game(game_create: GameCreate) -> GameResponse:
