@@ -66,7 +66,7 @@ async def generate_game(game_create: GameCreate) -> GameResponse:
         return GameResponse(
             id=game_id,
             title=config_data["metadata"]["title"],
-            configuration=json.dumps(config_data),
+            configuration=config_data,
             state={},
             created_at=datetime.now(),
             updated_at=None,
