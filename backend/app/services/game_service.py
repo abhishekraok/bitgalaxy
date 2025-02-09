@@ -8,36 +8,40 @@ from pathlib import Path
 
 async def generate_game(game_create: GameCreate) -> GameResponse:
     """Generate a new game using Claude and save it to disk"""
-    # Generate game configuration using Claude (now synchronous)
-    game_config = generate_game_configuration(description=game_create.description)
+    try:
+        # Generate game configuration using Claude
+        config_data = generate_game_configuration(description=game_create.description)
 
-    # Parse the response
-    config_data = json.loads(game_config)
+        # Define the base path for static games
+        base_path = Path("frontend/src/games/static")
+        game_id = config_data["metadata"]["id"]
+        game_path = base_path / game_id
 
-    # Define the base path for static games
-    base_path = Path("frontend/src/games/static")
-    game_id = config_data["metadata"]["id"]
-    game_path = base_path / game_id
+        # Create game directory
+        os.makedirs(game_path, exist_ok=True)
 
-    # Create game directory
-    os.makedirs(game_path, exist_ok=True)
+        # Save game files
+        for filename, content in config_data["gameFiles"].items():
+            with open(game_path / filename, "w") as f:
+                f.write(content)
 
-    # Save game files
-    for filename, content in config_data["gameFiles"].items():
-        with open(game_path / filename, "w") as f:
-            f.write(content)
+        # Update registry.ts
+        await update_game_registry(config_data["metadata"])
 
-    # Update registry.ts
-    await update_game_registry(config_data["metadata"])
+        return GameResponse(
+            id=game_id,
+            title=config_data["metadata"]["title"],
+            configuration=json.dumps(config_data),
+            state={},
+            created_at=datetime.now(),
+            updated_at=None,
+        )
 
-    return GameResponse(
-        id=game_id,
-        title=config_data["metadata"]["title"],
-        configuration=game_config,
-        state={},
-        created_at=datetime.now(),
-        updated_at=None,
-    )
+    except ValueError as e:
+        # Re-raise the error with a more specific message
+        raise ValueError(f"Failed to generate game: {str(e)}")
+    except Exception as e:
+        raise ValueError(f"Unexpected error while generating game: {str(e)}")
 
 
 async def update_game_registry(metadata: dict):

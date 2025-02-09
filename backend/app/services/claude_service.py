@@ -1,6 +1,7 @@
 from anthropic import Anthropic
 from app.core.config import settings
 from typing import Dict, Any
+import json
 
 claude_client = Anthropic(api_key=settings.ANTHROPIC_API_KEY)
 
@@ -37,5 +38,32 @@ def generate_game_configuration(description: str | None) -> Dict[str, Any]:
         messages=[{"role": "user", "content": prompt}],
     )
 
-    # Parse and validate the response
-    return response.content[0].text
+    response_text = response.content[0].text
+
+    try:
+        # Attempt to parse the JSON response
+        config = json.loads(response_text)
+
+        # Validate required fields
+        required_fields = {
+            "gameFiles": ["config.ts", "Scene.ts"],
+            "metadata": ["id", "title", "description"],
+        }
+
+        for section, fields in required_fields.items():
+            if section not in config:
+                raise ValueError(f"Missing required section: {section}")
+            for field in fields:
+                if section == "gameFiles":
+                    if field not in config[section]:
+                        raise ValueError(f"Missing required game file: {field}")
+                elif section == "metadata":
+                    if field not in config[section]:
+                        raise ValueError(f"Missing required metadata field: {field}")
+
+        return config
+
+    except json.JSONDecodeError:
+        raise ValueError("Invalid JSON response from Claude. Please try again.")
+    except Exception as e:
+        raise ValueError(f"Error processing game configuration: {str(e)}")
