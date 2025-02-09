@@ -2,8 +2,15 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { gamesApi } from '../../services/gamesApi'
 import { GameConfig } from '../../types/game'
 
+interface Game {
+    id: string;
+    title: string;
+    description?: string;
+    created_at: string;
+}
+
 interface GamesState {
-    availableGames: GameConfig[]
+    availableGames: Game[];
     currentGame: GameConfig | null
     loading: boolean
     error: string | null
