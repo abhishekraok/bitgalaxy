@@ -4,6 +4,8 @@ from app.core.config import settings
 from app.api.v1.api import api_router
 from app.services.game_service import scan_static_games
 from app.db.session import SessionLocal
+from app.db.base_class import Base  # Import Base
+from app.db.session import engine  # Import engine
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -33,6 +35,10 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup_event():
+    # Create all tables
+    Base.metadata.create_all(bind=engine)
+
+    # Scan for games
     db = SessionLocal()
     try:
         scan_static_games(db)
