@@ -15,6 +15,7 @@ import {
     Grid,
     Divider
 } from '@mui/material'
+import { staticGames } from '../games/static/registry'
 
 const Home = () => {
     const dispatch = useDispatch<AppDispatch>()
@@ -39,28 +40,30 @@ const Home = () => {
                     </Typography>
 
                     <Grid container spacing={3}>
-                        {/* Static Game */}
-                        <Grid item xs={12} sm={6} md={4}>
-                            <Card>
-                                <CardContent>
-                                    <Typography variant="h6">
-                                        Collect Stars
-                                    </Typography>
-                                    <Typography color="text.secondary">
-                                        Static Demo Game
-                                    </Typography>
-                                </CardContent>
-                                <CardActions>
-                                    <Button
-                                        component={Link}
-                                        to="/game/static/collect-stars"
-                                        size="small"
-                                    >
-                                        Play Now
-                                    </Button>
-                                </CardActions>
-                            </Card>
-                        </Grid>
+                        {/* Static Games */}
+                        {staticGames.map(game => (
+                            <Grid item xs={12} sm={6} md={4} key={game.id}>
+                                <Card>
+                                    <CardContent>
+                                        <Typography variant="h6">
+                                            {game.title}
+                                        </Typography>
+                                        <Typography color="text.secondary">
+                                            Static Game - {game.description}
+                                        </Typography>
+                                    </CardContent>
+                                    <CardActions>
+                                        <Button
+                                            component={Link}
+                                            to={`/game/static/${game.id}`}
+                                            size="small"
+                                        >
+                                            Play Now
+                                        </Button>
+                                    </CardActions>
+                                </Card>
+                            </Grid>
+                        ))}
 
                         {/* Generated Games */}
                         {availableGames.map(game => (
