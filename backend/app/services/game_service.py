@@ -6,6 +6,31 @@ import os
 from pathlib import Path
 
 
+def get_standard_config(scene_name: str) -> str:
+    """Return the standard game configuration template"""
+    return f"""import {{ GameConfig }} from 'phaser'
+import {scene_name} from './{scene_name}'
+
+const config: GameConfig = {{
+    type: Phaser.AUTO,
+    width: 800,
+    height: 600,
+    backgroundColor: '#4488aa',
+    parent: 'game-container',
+    scene: {scene_name},
+    physics: {{
+        default: 'arcade',
+        arcade: {{
+            gravity: {{ y: 300 }},
+            debug: false
+        }}
+    }}
+}}
+
+export {{ config as default }}
+"""
+
+
 async def generate_game(game_create: GameCreate) -> GameResponse:
     """Generate a new game using Claude and save it to disk"""
     try:
@@ -20,10 +45,14 @@ async def generate_game(game_create: GameCreate) -> GameResponse:
         # Create game directory
         os.makedirs(game_path, exist_ok=True)
 
-        # Save game files
-        for filename, content in config_data["gameFiles"].items():
-            with open(game_path / filename, "w") as f:
-                f.write(content)
+        # Save Scene.ts
+        with open(game_path / "Scene.ts", "w") as f:
+            f.write(config_data["gameFiles"]["Scene.ts"])
+
+        # Save standard config.ts
+        scene_name = f"{game_id.title().replace('-', '')}Scene"
+        with open(game_path / "config.ts", "w") as f:
+            f.write(get_standard_config(scene_name))
 
         # Update registry.ts
         await update_game_registry(config_data["metadata"])

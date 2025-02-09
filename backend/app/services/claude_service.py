@@ -11,18 +11,8 @@ def generate_game_configuration(description: str | None) -> Dict[str, Any]:
     prompt = f"""Create a Phaser 3 game implementation.
     Description: {description or 'A simple game'}
     
-    Return a JSON object with the following structure:
-    {{
-        "gameFiles": {{
-            "config.ts": "// Configuration file content",
-            "Scene.ts": "// Main scene file content"
-        }},
-        "metadata": {{
-            "id": "game-id-in-kebab-case",
-            "title": "Game Title",
-            "description": "Game description"
-        }}
-    }}
+    All your code should be in a single file. Return the complete working code in typescript.
+    Do not include any other text or comments.
     
     The game should:
     1. Use Phaser 3 framework
@@ -39,28 +29,19 @@ def generate_game_configuration(description: str | None) -> Dict[str, Any]:
     )
 
     response_text = response.content[0].text
+    print(response_text)
 
     try:
-        # Attempt to parse the JSON response
-        config = json.loads(response_text)
-
-        # Validate required fields
-        required_fields = {
-            "gameFiles": ["config.ts", "Scene.ts"],
-            "metadata": ["id", "title", "description"],
+        config = {
+            "gameFiles": {
+                "Scene.ts": response_text,
+            },
+            "metadata": {
+                "id": "game-id-in-kebab-case",
+                "title": "Game Title",
+                "description": "Game description",
+            },
         }
-
-        for section, fields in required_fields.items():
-            if section not in config:
-                raise ValueError(f"Missing required section: {section}")
-            for field in fields:
-                if section == "gameFiles":
-                    if field not in config[section]:
-                        raise ValueError(f"Missing required game file: {field}")
-                elif section == "metadata":
-                    if field not in config[section]:
-                        raise ValueError(f"Missing required metadata field: {field}")
-
         return config
 
     except json.JSONDecodeError:
