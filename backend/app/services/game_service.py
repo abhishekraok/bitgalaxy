@@ -1,38 +1,53 @@
 from app.schemas.game import GameCreate, GameResponse
 from app.services.claude_service import generate_game_configuration
+from app.models.game import Game
+from sqlalchemy.orm import Session
 from datetime import datetime
-import json
 import os
 from pathlib import Path
+import json
 
 
-def get_standard_config(scene_name: str) -> str:
-    """Return the standard game configuration template"""
-    return f"""import {{ GameConfig }} from 'phaser'
-import Scene{scene_name} from './Scene'
+def scan_static_games(db: Session) -> list[Game]:
+    """Scan the static games directory and add any new games to the database"""
+    base_path = Path("../frontend/src/games/static")
 
-const config: GameConfig = {{
-    type: Phaser.AUTO,
-    width: 800,
-    height: 600,
-    backgroundColor: '#4488aa',
-    parent: 'game-container',
-    scene: Scene{scene_name},
-    physics: {{
-        default: 'arcade',
-        arcade: {{
-            gravity: {{ y: 300 }},
-            debug: false
-        }}
-    }}
-}}
+    # Get all subdirectories in the static games folder
+    game_dirs = [d for d in base_path.iterdir() if d.is_dir()]
 
-export {{ config as default }}
-"""
+    games_added = []
+    for game_dir in game_dirs:
+        game_id = game_dir.name
+
+        # Check if game already exists in database
+        existing_game = db.query(Game).filter(Game.id == game_id).first()
+        if existing_game:
+            games_added.append(existing_game)
+            continue
+
+        # Try to read Scene.ts to get game metadata
+        scene_file = game_dir / "Scene.ts"
+        if scene_file.exists():
+            try:
+                # Create a new game entry
+                game = Game(
+                    id=game_id,
+                    title=f"Game {game_id}",  # Default title if not found
+                    configuration={"gameFiles": {"Scene.ts": scene_file.read_text()}},
+                    state={},
+                )
+                db.add(game)
+                db.commit()
+                db.refresh(game)
+                games_added.append(game)
+            except Exception as e:
+                print(f"Error adding game {game_id}: {str(e)}")
+
+    return games_added
 
 
-async def generate_game(game_create: GameCreate) -> GameResponse:
-    """Generate a new game using Claude and save it to disk"""
+async def generate_game(game_create: GameCreate, db: Session) -> GameResponse:
+    """Generate a new game using Claude and save it to disk and database"""
     try:
         # Generate unique game ID using title and timestamp
         game_id = datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -55,52 +70,28 @@ async def generate_game(game_create: GameCreate) -> GameResponse:
         with open(game_path / "Scene.ts", "w") as f:
             f.write(config_data["gameFiles"]["Scene.ts"])
 
-        # Save standard config.ts
-        scene_name = game_id.title().replace("-", "")
-        with open(game_path / "config.ts", "w") as f:
-            f.write(get_standard_config(scene_name))
+        # Create database entry
+        game = Game(
+            id=game_id,
+            title=game_create.title,
+            configuration=config_data,
+            state={},
+        )
 
-        # Update registry.ts
-        await update_game_registry(config_data["metadata"])
+        db.add(game)
+        db.commit()
+        db.refresh(game)
 
         return GameResponse(
             id=game_id,
             title=config_data["metadata"]["title"],
             configuration=config_data,
             state={},
-            created_at=datetime.now(),
-            updated_at=None,
+            created_at=game.created_at,
+            updated_at=game.updated_at,
         )
 
     except ValueError as e:
-        # Re-raise the error with a more specific message
         raise ValueError(f"Failed to generate game: {str(e)}")
     except Exception as e:
         raise ValueError(f"Unexpected error while generating game: {str(e)}")
-
-
-async def update_game_registry(metadata: dict):
-    """Update the static games registry with the new game"""
-    registry_path = Path("../frontend/src/games/static/registry.ts")
-
-    # Read existing registry
-    with open(registry_path, "r") as f:
-        content = f.read()
-
-    # Find the position before the closing array bracket
-    insert_pos = content.rindex("];")
-
-    # Create new game entry
-    new_game = f"""    {{
-        id: '{metadata["id"]}',
-        title: '{metadata["title"]}',
-        description: '{metadata["description"]}',
-        getConfig: () => import('./{metadata["id"]}/config')
-    }},\n"""
-
-    # Insert the new game entry
-    updated_content = content[:insert_pos] + new_game + content[insert_pos:]
-
-    # Save updated registry
-    with open(registry_path, "w") as f:
-        f.write(updated_content)

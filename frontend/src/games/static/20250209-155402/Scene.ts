@@ -1,12 +1,11 @@
-```typescript
+
 import 'phaser';
 
 class MainScene extends Phaser.Scene {
     private player!: Phaser.Physics.Arcade.Sprite;
     private apples!: Phaser.Physics.Arcade.Group;
-    private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
-    private score: number = 0;
     private scoreText!: Phaser.GameObjects.Text;
+    private score: number = 0;
     private gameOver: boolean = false;
 
     constructor() {
@@ -14,28 +13,22 @@ class MainScene extends Phaser.Scene {
     }
 
     preload(): void {
-        this.load.image('player', 'https://labs.phaser.io/assets/sprites/mushroom2.png');
+        this.load.image('player', 'https://labs.phaser.io/assets/sprites/basket.png');
         this.load.image('apple', 'https://labs.phaser.io/assets/sprites/apple.png');
+        this.load.image('sky', 'https://labs.phaser.io/assets/skies/sky1.png');
     }
 
     create(): void {
+        this.add.image(400, 300, 'sky');
+
         this.player = this.physics.add.sprite(400, 550, 'player');
         this.player.setCollideWorldBounds(true);
 
         this.apples = this.physics.add.group();
-        
-        this.cursors = this.input.keyboard.createCursorKeys();
 
-        this.scoreText = this.add.text(16, 16, 'Score: 0', { 
-            fontSize: '32px', 
-            color: '#fff' 
-        });
-
-        this.time.addEvent({
-            delay: 1000,
-            callback: this.spawnApple,
-            callbackScope: this,
-            loop: true
+        this.scoreText = this.add.text(16, 16, 'Score: 0', {
+            fontSize: '32px',
+            color: '#fff'
         });
 
         this.physics.add.overlap(
@@ -45,6 +38,13 @@ class MainScene extends Phaser.Scene {
             undefined,
             this
         );
+
+        this.time.addEvent({
+            delay: 1000,
+            callback: this.spawnApple,
+            callbackScope: this,
+            loop: true
+        });
     }
 
     update(): void {
@@ -52,10 +52,12 @@ class MainScene extends Phaser.Scene {
             return;
         }
 
-        if (this.cursors.left.isDown) {
-            this.player.setVelocityX(-160);
-        } else if (this.cursors.right.isDown) {
-            this.player.setVelocityX(160);
+        const cursors = this.input.keyboard.createCursorKeys();
+
+        if (cursors.left.isDown) {
+            this.player.setVelocityX(-300);
+        } else if (cursors.right.isDown) {
+            this.player.setVelocityX(300);
         } else {
             this.player.setVelocityX(0);
         }
@@ -64,6 +66,7 @@ class MainScene extends Phaser.Scene {
     private spawnApple(): void {
         const x = Phaser.Math.Between(0, 800);
         const apple = this.apples.create(x, 0, 'apple');
+        apple.setBounce(0);
         apple.setVelocityY(200);
     }
 
@@ -87,8 +90,12 @@ const config: Phaser.Types.Core.GameConfig = {
             debug: false
         }
     },
-    scene: MainScene
+    scene: MainScene,
+    backgroundColor: '#000000',
+    scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH
+    }
 };
 
-new Phaser.Game(config);
-```
+export { MainScene as default, config };

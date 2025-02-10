@@ -1,14 +1,16 @@
 import { Link } from 'react-router-dom'
-import { staticGames } from '../games/static/registry'
+import { useSelector } from 'react-redux'
+import { RootState } from '../store'
 
 const Navbar = () => {
-    const firstGame = staticGames[0]
+    const { availableGames } = useSelector((state: RootState) => state.games)
+    const firstGame = availableGames[0]
 
     return (
         <nav className="navbar">
             <Link to="/">Home</Link>
             {firstGame && (
-                <Link to={`/game/static/${firstGame.id}`}>
+                <Link to={`/game/generated/${firstGame.id}`}>
                     Play Demo Game
                 </Link>
             )}
