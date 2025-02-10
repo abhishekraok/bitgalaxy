@@ -18,6 +18,7 @@ def set_test_settings():
     # Override settings before any database connections are made
     settings.TESTING = True
     settings.DATABASE_URL = SQLALCHEMY_TEST_DATABASE_URL
+    settings.SQLALCHEMY_DATABASE_URI = SQLALCHEMY_TEST_DATABASE_URL
 
     # Create new engine with SQLite configuration
     test_engine = create_engine(
