@@ -1,14 +1,10 @@
 # Bit Galaxy 
 
-[![Test](https://github.com/abhishekrao/bitgalaxy/actions/workflows/test.yml/badge.svg)](https://github.com/abhishekrao/bitgalaxy/actions/workflows/test.yml)
-[![codecov](https://codecov.io/gh/abhishekrao/bitgalaxy/branch/main/graph/badge.svg)](https://codecov.io/gh/abhishekrao/bitgalaxy) 
-
-
-# About
+## About
 
 A platform for playing and editing AI generated games.
 
-# Installation
+## Installation
 
 ```bash
 git clone https://github.com/abhishekrao/bitgalaxy.git
@@ -18,7 +14,7 @@ pip install -r requirements.txt
 
 Edit the `.env` file with your own values.
 
-# Running the project
+## Running the project
 
 ```bash
 cd backend
@@ -31,7 +27,7 @@ npm install
 npm run dev
 ```
 
-# Testing
+## Testing
 
 ```bash
 cd backend
