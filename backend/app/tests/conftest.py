@@ -1,13 +1,12 @@
 import pytest
 from typing import Generator, Dict
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 from app.db.base_class import Base
-from app.db.session import SessionLocal, get_db
+from app.db.session import SQLITE_URL, get_engine
 from app.main import app
 from app.core.config import settings
+from app.db.session import get_db
 
 # Use an in-memory SQLite database for testing
 SQLALCHEMY_TEST_DATABASE_URL = "sqlite:///:memory:"
@@ -17,14 +16,10 @@ SQLALCHEMY_TEST_DATABASE_URL = "sqlite:///:memory:"
 def set_test_settings():
     # Override settings before any database connections are made
     settings.TESTING = True
-    settings.DATABASE_URL = SQLALCHEMY_TEST_DATABASE_URL
+    settings.DATABASE_URL = SQLITE_URL
 
-    # Create new engine with SQLite configuration
-    test_engine = create_engine(
-        SQLALCHEMY_TEST_DATABASE_URL,
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
+    # Use centralized engine creation
+    test_engine = get_engine(testing=True)
 
     # Create all tables in the test database
     Base.metadata.drop_all(bind=test_engine)
@@ -45,12 +40,8 @@ def set_test_settings():
 
 @pytest.fixture(scope="function")
 def db() -> Generator:
-    # Create new engine for each test function
-    test_engine = create_engine(
-        SQLALCHEMY_TEST_DATABASE_URL,
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
+    # Use centralized engine creation
+    test_engine = get_engine(testing=True)
 
     # Create all tables for this test
     Base.metadata.create_all(bind=test_engine)
