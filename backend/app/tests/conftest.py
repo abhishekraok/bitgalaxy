@@ -8,16 +8,16 @@ from app.main import app
 from app.core.config import settings
 from app.db.session import get_db
 
+# Override settings immediately at module import time
+settings.TESTING = True
+settings.DATABASE_URL = SQLITE_URL
+
 # Use an in-memory SQLite database for testing
 SQLALCHEMY_TEST_DATABASE_URL = "sqlite:///:memory:"
 
 
 @pytest.fixture(scope="session", autouse=True)
 def set_test_settings():
-    # Override settings before any database connections are made
-    settings.TESTING = True
-    settings.DATABASE_URL = SQLITE_URL
-
     # Use centralized engine creation
     test_engine = get_engine(testing=True)
 
