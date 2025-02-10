@@ -15,13 +15,17 @@ SQLALCHEMY_TEST_DATABASE_URL = "sqlite:///:memory:"
 engine = create_engine(
     SQLALCHEMY_TEST_DATABASE_URL,
     connect_args={"check_same_thread": False},
-    poolclass=StaticPool  # Add this to handle concurrent access
+    poolclass=StaticPool,  # Add this to handle concurrent access
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 
 @pytest.fixture(scope="session", autouse=True)
 def set_test_settings():
     settings.TESTING = True
+    # Override database URL for testing
+    settings.DATABASE_URL = SQLALCHEMY_TEST_DATABASE_URL
+
 
 @pytest.fixture(scope="session")
 def db() -> Generator:
@@ -32,6 +36,7 @@ def db() -> Generator:
     finally:
         db.close()
         Base.metadata.drop_all(bind=engine)
+
 
 @pytest.fixture(scope="module")
 def client(db) -> Generator:
@@ -46,10 +51,11 @@ def client(db) -> Generator:
         yield c
     app.dependency_overrides = {}
 
+
 @pytest.fixture
 def test_user(db) -> Dict[str, str]:
     return {
         "email": f"test{id(db)}@example.com",
         "password": "test123",
-        "username": f"testuser{id(db)}"
-    } 
+        "username": f"testuser{id(db)}",
+    }
