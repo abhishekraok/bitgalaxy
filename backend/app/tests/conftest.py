@@ -12,33 +12,60 @@ from app.core.config import settings
 # Use an in-memory SQLite database for testing
 SQLALCHEMY_TEST_DATABASE_URL = "sqlite:///:memory:"
 
-engine = create_engine(
-    SQLALCHEMY_TEST_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,  # Add this to handle concurrent access
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
 
 @pytest.fixture(scope="session", autouse=True)
 def set_test_settings():
+    # Override settings before any database connections are made
     settings.TESTING = True
-    # Override database URL for testing
     settings.DATABASE_URL = SQLALCHEMY_TEST_DATABASE_URL
 
+    # Create new engine with SQLite configuration
+    test_engine = create_engine(
+        SQLALCHEMY_TEST_DATABASE_URL,
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
 
-@pytest.fixture(scope="session")
+    # Override the SessionLocal in the main app
+    TestingSessionLocal = sessionmaker(
+        autocommit=False, autoflush=False, bind=test_engine
+    )
+    app.dependency_overrides[get_db] = lambda: TestingSessionLocal()
+
+    # Create all tables in the test database
+    Base.metadata.create_all(bind=test_engine)
+
+    yield
+
+    # Cleanup
+    Base.metadata.drop_all(bind=test_engine)
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture(scope="function")
 def db() -> Generator:
-    Base.metadata.create_all(bind=engine)
-    db = TestingSessionLocal()
+    test_engine = create_engine(
+        SQLALCHEMY_TEST_DATABASE_URL,
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    TestingSessionLocal = sessionmaker(
+        autocommit=False, autoflush=False, bind=test_engine
+    )
+
+    connection = test_engine.connect()
+    transaction = connection.begin()
+    session = TestingSessionLocal(bind=connection)
+
     try:
-        yield db
+        yield session
     finally:
-        db.close()
-        Base.metadata.drop_all(bind=engine)
+        session.close()
+        transaction.rollback()
+        connection.close()
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def client(db) -> Generator:
     def override_get_db():
         try:
@@ -49,7 +76,7 @@ def client(db) -> Generator:
     app.dependency_overrides[get_db] = override_get_db
     with TestClient(app) as c:
         yield c
-    app.dependency_overrides = {}
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture
