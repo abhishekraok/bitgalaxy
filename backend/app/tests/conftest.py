@@ -26,14 +26,15 @@ def set_test_settings():
         poolclass=StaticPool,
     )
 
+    # Create all tables in the test database
+    Base.metadata.drop_all(bind=test_engine)  # Clear any existing tables
+    Base.metadata.create_all(bind=test_engine)
+
     # Override the SessionLocal in the main app
     TestingSessionLocal = sessionmaker(
         autocommit=False, autoflush=False, bind=test_engine
     )
     app.dependency_overrides[get_db] = lambda: TestingSessionLocal()
-
-    # Create all tables in the test database
-    Base.metadata.create_all(bind=test_engine)
 
     yield
 
@@ -44,11 +45,16 @@ def set_test_settings():
 
 @pytest.fixture(scope="function")
 def db() -> Generator:
+    # Create new engine for each test function
     test_engine = create_engine(
         SQLALCHEMY_TEST_DATABASE_URL,
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
     )
+
+    # Create all tables for this test
+    Base.metadata.create_all(bind=test_engine)
+
     TestingSessionLocal = sessionmaker(
         autocommit=False, autoflush=False, bind=test_engine
     )
@@ -63,6 +69,8 @@ def db() -> Generator:
         session.close()
         transaction.rollback()
         connection.close()
+        # Clean up tables after the test
+        Base.metadata.drop_all(bind=test_engine)
 
 
 @pytest.fixture(scope="function")
