@@ -30,6 +30,8 @@ jobs:
       env:
         ANTHROPIC_API_KEY: dummy_key_for_testing
         SECRET_KEY: dummy_secret_for_testing
+        TESTING: "True"
+        DATABASE_URL: "sqlite:///:memory:"
       run: |
         pytest
 
