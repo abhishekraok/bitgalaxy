@@ -2,9 +2,20 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from app.core.config import settings
 from typing import Generator
+from sqlalchemy.pool import StaticPool
 
-engine = create_engine(settings.SQLALCHEMY_DATABASE_URI)
+# Create engine based on whether we're testing or not
+if settings.TESTING:
+    engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+else:
+    engine = create_engine(settings.SQLALCHEMY_DATABASE_URI)
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 
 def get_db() -> Generator[Session, None, None]:
     """
@@ -14,4 +25,4 @@ def get_db() -> Generator[Session, None, None]:
     try:
         yield db
     finally:
-        db.close() 
+        db.close()

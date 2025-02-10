@@ -18,7 +18,6 @@ def set_test_settings():
     # Override settings before any database connections are made
     settings.TESTING = True
     settings.DATABASE_URL = SQLALCHEMY_TEST_DATABASE_URL
-    settings.SQLALCHEMY_DATABASE_URI = SQLALCHEMY_TEST_DATABASE_URL
 
     # Create new engine with SQLite configuration
     test_engine = create_engine(
@@ -28,7 +27,7 @@ def set_test_settings():
     )
 
     # Create all tables in the test database
-    Base.metadata.drop_all(bind=test_engine)  # Clear any existing tables
+    Base.metadata.drop_all(bind=test_engine)
     Base.metadata.create_all(bind=test_engine)
 
     # Override the SessionLocal in the main app
