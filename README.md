@@ -12,7 +12,9 @@ cd bitgalaxy
 pip install -r requirements.txt
 ```
 
-Edit the `.env` file with your own values.
+To set the Claude API key
+Create a backend/.env file and add the line
+`ANTHROPIC_API_KEY=<your api key>`
 
 ## Running the project
 
